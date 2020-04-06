@@ -6,18 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://yoursite.com">
-  <title>404 | 陈诚的博客</title>
+  <title>spark数据倾斜的完美解决方法 | 陈诚的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="404">
-<meta property="og:type" content="website">
-<meta property="og:title" content="404">
-<meta property="og:url" content="http://yoursite.com/404/index.html">
+  <meta name="description" content="摘要：本文主要根据spark数据倾斜出现的原因，表现，及解决方案和思路进行讨论。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark数据倾斜的完美解决方法">
+<meta property="og:url" content="http://yoursite.com/2020/04/06/spark%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C%E7%9A%84%E5%AE%8C%E7%BE%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/index.html">
 <meta property="og:site_name" content="陈诚的博客">
-<meta property="og:description" content="404">
+<meta property="og:description" content="摘要：本文主要根据spark数据倾斜出现的原因，表现，及解决方案和思路进行讨论。">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-04-05T11:36:51.000Z">
-<meta property="article:modified_time" content="2020-04-05T11:38:28.777Z">
+<meta property="article:published_time" content="2020-04-06T09:30:30.000Z">
+<meta property="article:modified_time" content="2020-04-06T09:53:20.902Z">
 <meta property="article:author" content="陈诚同学">
+<meta property="article:tag" content="大数据">
+<meta property="article:tag" content="spark">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="陈诚的博客" type="application/atom+xml">
@@ -167,36 +169,133 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="page-" class="article article-type-page " itemscope itemprop="blogPost">
+            <article id="post-spark数据倾斜的完美解决方法" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      404
+      spark数据倾斜的完美解决方法
     </h1>
   
 
         
-        <a href="/404/index.html" class="archive-article-date">
-  	<time datetime="2020-04-05T11:36:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-04-05</time>
+        <a href="/2020/04/06/spark%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C%E7%9A%84%E5%AE%8C%E7%BE%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/" class="archive-article-date">
+  	<time datetime="2020-04-06T09:30:30.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-04-06</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>404</title>
-    <meta name="generator" content="Hexo 4.2.0"></head>
-    <body>
-        <script type="text/javascript"               src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8"></script>
-    </body>
-</html>
+        <p>摘要：本文主要根据spark数据倾斜出现的原因，表现，及解决方案和思路进行讨论。</p>
+<a id="more"></a>
+
+<p><strong>前言</strong><br>数据倾斜的解决，跟性能调优，有一点异曲同工之妙。</p>
+<p>性能调优中最有效最直接最简单的方式就是加资源加并行度，并注意RDD架构（复用同一个RDD，加上cache缓存）。相对于前面，shuffle、jvm等是次要的。</p>
+<hr>
+<h4 id="原理以及现象分析"><a href="#原理以及现象分析" class="headerlink" title="原理以及现象分析"></a>原理以及现象分析</h4><p><strong>数据倾斜怎么出现的</strong><br>在执行shuffle操作的时候，是按照key，来进行values的数据的输出、拉取和聚合的。</p>
+<p>同一个key的values，一定是分配到一个reduce task进行处理的。</p>
+<p>多个key对应的values，比如一共是90万。可能某个key对应了88万数据，被分配到一个task上去面去执行。</p>
+<p>另外两个task，可能各分配到了1万数据，可能是数百个key，对应的1万条数据。</p>
+<p>这样就会出现数据倾斜问题。</p>
+<p>想象一下，出现数据倾斜以后的运行的情况。很糟糕！</p>
+<p>其中两个task，各分配到了1万数据，可能同时在10分钟内都运行完了。另外一个task有88万条，88 * 10 =  880分钟 = 14.5个小时。</p>
+<p>大家看，本来另外两个task很快就运行完毕了（10分钟），但是由于一个拖后腿的家伙，第三个task，要14.5个小时才能运行完，就导致整个spark作业，也得14.5个小时才能运行完。</p>
+<p>数据倾斜，一旦出现，是不是性能杀手？！</p>
+<hr>
+<h4 id="发生数据倾斜以后的现象"><a href="#发生数据倾斜以后的现象" class="headerlink" title="发生数据倾斜以后的现象"></a>发生数据倾斜以后的现象</h4><p><strong>Spark数据倾斜，有两种表现：</strong></p>
+<p>1、你的大部分的task，都执行的特别特别快，（你要用client模式，standalone client，yarn client，本地机器一执行spark-submit脚本，就会开始打印log），task175 finished，剩下几个task，执行的特别特别慢，前面的task，一般1s可以执行完5个，最后发现1000个task，998，999 task，要执行1个小时，2个小时才能执行完一个task。</p>
+<p>出现以上loginfo，就表明出现数据倾斜了。</p>
+<p>这样还算好的，因为虽然老牛拉破车一样非常慢，但是至少还能跑。</p>
+<p>2、另一种情况是，运行的时候，其他task都执行完了，也没什么特别的问题，但是有的task，就是会突然间报了一个OOM，JVM Out Of Memory，内存溢出了，task failed，task lost，resubmitting task。反复执行几次都到了某个task就是跑不通，最后就挂掉。</p>
+<p>某个task就直接OOM，那么基本上也是因为数据倾斜了，task分配的数量实在是太大了！所以内存放不下，然后你的task每处理一条数据，还要创建大量的对象，内存爆掉了。</p>
+<p>这样也表明出现数据倾斜了。</p>
+<p>这种就不太好了，因为你的程序如果不去解决数据倾斜的问题，压根儿就跑不出来。</p>
+<p>作业都跑不完，还谈什么性能调优这些东西？！</p>
+<p> <strong>定位数据倾斜出现的原因与出现问题的位置</strong><br>根据log去定位</p>
+<p>出现数据倾斜的原因，基本只可能是因为发生了shuffle操作，在shuffle的过程中，出现了数据倾斜的问题。因为某个或者某些key对应的数据，远远的高于其他的key。</p>
+<p>1、你在自己的程序里面找找，哪些地方用了会产生shuffle的算子，groupByKey、countByKey、reduceByKey、join</p>
+<p>2、看log</p>
+<p>log一般会报是在你的哪一行代码，导致了OOM异常。或者看log，看看是执行到了第几个stage。spark代码，是怎么划分成一个一个的stage的。哪一个stage生成的task特别慢，就能够自己用肉眼去对你的spark代码进行stage的划分，就能够通过stage定位到你的代码，到底哪里发生了数据倾斜。</p>
+<hr>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><p><strong>聚合源数据以及过滤导致倾斜的key</strong><br>数据倾斜解决方案，第一个方案和第二个方案，一起来讲。这两个方案是最直接、最有效、最简单的解决数据倾斜问题的方案。</p>
+<p>第一个方案：聚合源数据。</p>
+<p>第二个方案：过滤导致倾斜的key。</p>
+<p>后面的五个方案，尤其是最后4个方案，都是那种特别狂拽炫酷吊炸天的方案。但没有第一二个方案简单直接。如果碰到了数据倾斜的问题。上来就先考虑第一个和第二个方案看能不能做，如果能做的话，后面的5个方案，都不用去搞了。</p>
+<p>有效、简单、直接才是最好的，彻底根除了数据倾斜的问题。</p>
+<p><strong>方案一：聚合源数据</strong><br>一些聚合的操作，比如groupByKey、reduceByKey，groupByKey说白了就是拿到每个key对应的values。reduceByKey说白了就是对每个key对应的values执行一定的计算。</p>
+<p>这些操作，比如groupByKey和reduceByKey，包括之前说的join。都是在spark作业中执行的。</p>
+<p>spark作业的数据来源，通常是哪里呢？90%的情况下，数据来源都是hive表（hdfs，大数据分布式存储系统）。hdfs上存储的大数据。hive表中的数据通常是怎么出来的呢？有了spark以后，hive比较适合做什么事情？hive就是适合做离线的，晚上凌晨跑的，ETL（extract transform load，数据的采集、清洗、导入），hive sql，去做这些事情，从而去形成一个完整的hive中的数据仓库。说白了，数据仓库，就是一堆表。</p>
+<p>spark作业的源表，hive表，通常情况下来说，也是通过某些hive etl生成的。hive etl可能是晚上凌晨在那儿跑。今天跑昨天的数据。</p>
+<p>数据倾斜，某个key对应的80万数据，某些key对应几百条，某些key对应几十条。现在咱们直接在生成hive表的hive etl中对数据进行聚合。比如按key来分组，将key对应的所有的values全部用一种特殊的格式拼接到一个字符串里面去，比如“key=sessionid, value: action_seq=1|user_id=1|search_keyword=火锅|category_id=001;action_seq=2|user_id=1|search_keyword=涮肉|category_id=001”。</p>
+<p>对key进行group，在spark中，拿到key=sessionid，values<Iterable>。hive etl中，直接对key进行了聚合。那么也就意味着，每个key就只对应一条数据。在spark中，就不需要再去执行groupByKey+map这种操作了。直接对每个key对应的values字符串进行map操作，进行你需要的操作即可。</p>
+<p>spark中，可能对这个操作，就不需要执行shffule操作了，也就根本不可能导致数据倾斜。</p>
+<p>或者是对每个key在hive etl中进行聚合，对所有values聚合一下，不一定是拼接起来，可能是直接进行计算。reduceByKey计算函数应用在hive etl中，从而得到每个key的values。</p>
+<p> <strong>case 2</strong></p>
+<p>聚合源数据方案第二种做法是，你可能没有办法对每个key聚合出来一条数据。那么也可以做一个妥协，对每个key对应的数据，10万条。有好几个粒度，比如10万条里面包含了几个城市、几天、几个地区的数据，现在放粗粒度。直接就按照城市粒度，做一下聚合，几个城市，几天、几个地区粒度的数据，都给聚合起来。比如说</p>
+<p>city_id date area_id</p>
+<p>select … from … group by city_id</p>
+<p>尽量去聚合，减少每个key对应的数量，也许聚合到比较粗的粒度之后，原先有10万数据量的key，现在只有1万数据量。减轻数据倾斜的现象和问题。</p>
+<p><strong>方案二：过滤导致倾斜的key</strong><br>如果你能够接受某些数据在spark作业中直接就摒弃掉不使用。比如说，总共有100万个key。只有2个key是数据量达到10万的。其他所有的key，对应的数量都是几十万。</p>
+<p>这个时候，你自己可以去取舍，如果业务和需求可以理解和接受的话，在你从hive表查询源数据的时候，直接在sql中用where条件，过滤掉某几个key。</p>
+<p>那么这几个原先有大量数据，会导致数据倾斜的key，被过滤掉之后，那么在你的spark作业中，自然就不会发生数据倾斜了。</p>
+<p><strong>解决方案：提高shuffle操作reduce并行度</strong><br><strong>问题描述</strong><br>第一个和第二个方案，都不适合做，然后再考虑这个方案。</p>
+<p>将reduce task的数量变多，就可以让每个reduce task分配到更少的数据量。这样的话也许就可以缓解甚至是基本解决掉数据倾斜的问题。</p>
+<p><strong>提升shuffle reduce端并行度的操作方法</strong><br>很简单，主要给我们所有的shuffle算子，比如groupByKey、countByKey、reduceByKey。在调用的时候，传入进去一个参数。那个数字，就代表了那个shuffle操作的reduce端的并行度。那么在进行shuffle操作的时候，就会对应着创建指定数量的reduce task。</p>
+<p>这样的话，就可以让每个reduce task分配到更少的数据。基本可以缓解数据倾斜的问题。</p>
+<p>比如说，原本某个task分配数据特别多，直接OOM，内存溢出了，程序没法运行，直接挂掉。按照log，找到发生数据倾斜的shuffle操作，给它传入一个并行度数字，这样的话，原先那个task分配到的数据，肯定会变少。就至少可以避免OOM的情况，程序至少是可以跑的。</p>
+<p><strong>提升shuffle reduce并行度的缺陷</strong><br>治标不治本的意思，因为它没有从根本上改变数据倾斜的本质和问题。不像第一个和第二个方案（直接避免了数据倾斜的发生）。原理没有改变，只是说，尽可能地去缓解和减轻shuffle reduce task的数据压力，以及数据倾斜的问题。</p>
+<p><strong>实际生产环境中的经验</strong>：</p>
+<p>1、如果最理想的情况下，提升并行度以后，减轻了数据倾斜的问题，或者甚至可以让数据倾斜的现象忽略不计，那么就最好。就不用做其他的数据倾斜解决方案了。</p>
+<p>2、不太理想的情况下，比如之前某个task运行特别慢，要5个小时，现在稍微快了一点，变成了4个小时。或者是原先运行到某个task，直接OOM，现在至少不会OOM了，但是那个task运行特别慢，要5个小时才能跑完。</p>
+<p>那么，如果出现第二种情况的话，各位，就立即放弃第三种方案，开始去尝试和选择后面的四种方案。</p>
+<p><strong>使用随机key实现双重聚合</strong><br><strong>使用场景</strong><br>groupByKey、reduceByKey比较适合使用这种方式。join咱们通常不会这样来做，后面会讲三种针对不同的join造成的数据倾斜的问题的解决方案。</p>
+<p><strong>解决方案</strong><br>第一轮聚合的时候，对key进行打散，将原先一样的key，变成不一样的key，相当于是将每个key分为多组。</p>
+<p>先针对多个组，进行key的局部聚合。接着，再去除掉每个key的前缀，然后对所有的key进行全局的聚合。</p>
+<p>对groupByKey、reduceByKey造成的数据倾斜，有比较好的效果。</p>
+<p>如果说，之前的第一、第二、第三种方案，都没法解决数据倾斜的问题，那么就只能依靠这一种方式了。</p>
+<p><strong>将reduce join转换为map join</strong><br>普通的join，那么肯定是要走shuffle。既然是走shuffle，那么普通的join就肯定是走的是reduce join。那怎么将reduce join 转换为mapjoin呢？先将所有相同的key，对应的value汇聚到一个task中，然后再进行join。</p>
+<p><strong>使用场景</strong><br>这种方式适合在什么样的情况下来使用？</p>
+<p>如果两个RDD要进行join，其中一个RDD是比较小的。比如一个RDD是100万数据，一个RDD是1万数据。（一个RDD是1亿数据，一个RDD是100万数据）。</p>
+<p>其中一个RDD必须是比较小的，broadcast出去那个小RDD的数据以后，就会在每个executor的block manager中都保存一份。要确保你的内存足够存放那个小RDD中的数据。</p>
+<p>这种方式下，根本不会发生shuffle操作，肯定也不会发生数据倾斜。从根本上杜绝了join操作可能导致的数据倾斜的问题。</p>
+<p>对于join中有数据倾斜的情况，大家尽量第一时间先考虑这种方式，效果非常好。</p>
+<p>不适合的情况</p>
+<p>两个RDD都比较大，那么这个时候，你去将其中一个RDD做成broadcast，就很笨拙了。很可能导致内存不足。最终导致内存溢出，程序挂掉。</p>
+<p>而且其中某些key（或者是某个key），还发生了数据倾斜。此时可以采用最后两种方式。</p>
+<p>对于join这种操作，不光是考虑数据倾斜的问题。即使是没有数据倾斜问题，也完全可以优先考虑，用我们讲的这种高级的reduce join转map join的技术，不要用普通的join，去通过shuffle，进行数据的join。完全可以通过简单的map，使用map join的方式，牺牲一点内存资源。在可行的情况下，优先这么使用。</p>
+<p>不走shuffle，直接走map，是不是性能也会高很多？这是肯定的。</p>
+<p><strong>sample采样倾斜key单独进行join</strong><br><strong>方案实现思路</strong><br>将发生数据倾斜的key，单独拉出来，放到一个RDD中去。就用这个原本会倾斜的key RDD跟其他RDD单独去join一下，这个时候key对应的数据可能就会分散到多个task中去进行join操作。</p>
+<p>就不至于说是，这个key跟之前其他的key混合在一个RDD中时，肯定是会导致一个key对应的所有数据都到一个task中去，就会导致数据倾斜。</p>
+<p><strong>使用场景</strong><br>这种方案什么时候适合使用？</p>
+<p>优先对于join，肯定是希望能够采用上一个方案，即reduce join转换map join。两个RDD数据都比较大，那么就不要那么搞了。</p>
+<p>针对你的RDD的数据，你可以自己把它转换成一个中间表，或者是直接用countByKey()的方式，你可以看一下这个RDD各个key对应的数据量。此时如果你发现整个RDD就一个，或者少数几个key对应的数据量特别多。尽量建议，比如就是一个key对应的数据量特别多。</p>
+<p>此时可以采用这种方案，单拉出来那个最多的key，单独进行join，尽可能地将key分散到各个task上去进行join操作。</p>
+<p>什么时候不适用呢？</p>
+<p>如果一个RDD中，导致数据倾斜的key特别多。那么此时，最好还是不要这样了。还是使用我们最后一个方案，终极的join数据倾斜的解决方案。</p>
+<p>就是说，咱们单拉出来了一个或者少数几个可能会产生数据倾斜的key，然后还可以进行更加优化的一个操作。</p>
+<p>对于那个key，从另外一个要join的表中，也过滤出来一份数据，比如可能就只有一条数据。userid2infoRDD，一个userid key，就对应一条数据。</p>
+<p>然后呢，采取对那个只有一条数据的RDD，进行flatMap操作，打上100个随机数，作为前缀，返回100条数据。</p>
+<p>单独拉出来的可能产生数据倾斜的RDD，给每一条数据，都打上一个100以内的随机数，作为前缀。</p>
+<p>再去进行join，是不是性能就更好了。肯定可以将数据进行打散，去进行join。join完以后，可以执行map操作，去将之前打上的随机数给去掉，然后再和另外一个普通RDD join以后的结果进行union操作。</p>
+<p><strong>使用随机数以及扩容表进行join</strong><br><strong>使用场景及步骤</strong><br>当采用随机数和扩容表进行join解决数据倾斜的时候，就代表着，你的之前的数据倾斜的解决方案，都没法使用。</p>
+<p>这个方案是没办法彻底解决数据倾斜的，更多的，是一种对数据倾斜的缓解。</p>
+<p>步骤：</p>
+<p>1、选择一个RDD，要用flatMap，进行扩容，将每条数据，映射为多条数据，每个映射出来的数据，都带了一个n以内的随机数，通常来说会选择10。</p>
+<p>2、将另外一个RDD，做普通的map映射操作，每条数据都打上一个10以内的随机数。</p>
+<p>3、最后将两个处理后的RDD进行join操作。</p>
+<p><strong>局限性</strong><br>1、因为你的两个RDD都很大，所以你没有办法去将某一个RDD扩的特别大，一般咱们就是10倍。</p>
+<p>2、如果就是10倍的话，那么数据倾斜问题的确是只能说是缓解和减轻，不能说彻底解决。</p>
+<p>sample采样倾斜key并单独进行join</p>
+<p>将key，从另外一个RDD中过滤出的数据，可能只有一条或者几条，此时，咱们可以任意进行扩容，扩成1000倍。</p>
+<p>将从第一个RDD中拆分出来的那个倾斜key RDD，打上1000以内的一个随机数。</p>
+<p>这种情况下，还可以配合上，提升shuffle reduce并行度，join(rdd, 1000)。通常情况下，效果还是非常不错的。</p>
+<p>打散成100份，甚至1000份，2000份，去进行join，那么就肯定没有数据倾斜的问题了吧。</p>
+<hr>
+<p>版权声明：本文为CSDN博主「张强大数据」的原创文章，遵循CC 4.0 by-sa版权协议，转载请附上原文出处链接及本声明。<br>原文链接：<a href="https://blog.csdn.net/qq_38247150/article/details/80366769" target="_blank" rel="noopener">https://blog.csdn.net/qq_38247150/article/details/80366769</a></p>
+
       
 
       
@@ -235,7 +334,33 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">大数据</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">spark</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/技术//" class="article-tag-list-link color3">技术</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
 
       
 
@@ -285,7 +410,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/404/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/2020/04/06/spark%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C%E7%9A%84%E5%AE%8C%E7%BE%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -297,6 +422,16 @@
 </article>
 
   
+<nav id="article-nav">
+  
+  
+    <a href="/2020/04/06/linux%E9%98%B2%E7%81%AB%E5%A2%99%E8%AF%AD%E6%B3%95%E6%89%8B%E5%86%8C/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">linux防火墙语法手册</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
 
 <aside class="wrap-side-operation">
     <div class="mod-side-operation">
@@ -318,7 +453,7 @@
                 </span>
                 <span class="tooltip-content">
                     <div class="toc-article">
-                    目录，不存在的…
+                    <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#原理以及现象分析"><span class="toc-number">1.</span> <span class="toc-text">原理以及现象分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#发生数据倾斜以后的现象"><span class="toc-number">2.</span> <span class="toc-text">发生数据倾斜以后的现象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#解决方案"><span class="toc-number">3.</span> <span class="toc-text">解决方案</span></a></li></ol>
                     </div>
                 </span>
             </div>
@@ -365,7 +500,7 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,
