@@ -6,18 +6,21 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://yoursite.com">
-  <title>404 | 陈诚的博客</title>
+  <title>ODPS中的正则表达式使用案例1 | 陈诚的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="404                        L2Dwidget.init({&quot;pluginRootPath&quot;:&quot;live2dw&#x2F;&quot;,&quot;pluginJsPath&quot;:&quot;lib&#x2F;&quot;,&quot;pluginModelPath&quot;:&quot;assets&#x2F;&quot;,&quot;tagMode&quot;:false,&quot;debug&quot;:false,&quot;model&quot;:{&quot;jsonPath&quot;:&quot;&#x2F;liv">
-<meta property="og:type" content="website">
-<meta property="og:title" content="404">
-<meta property="og:url" content="http://yoursite.com/404/index.html">
+  <meta name="description" content="ODPS中正则表达式的使用引言：在使用ODPS进行数据清洗时，遇到了日期格式错乱的问题。当内置的日期函数和之前的UDF无法解决时，尝试使用正则匹配去解决这个问题。（以下内容仅供参考）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ODPS中的正则表达式使用案例1">
+<meta property="og:url" content="http://yoursite.com/2020/05/31/ODPS%E4%B8%AD%E7%9A%84%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B1/index.html">
 <meta property="og:site_name" content="陈诚的博客">
-<meta property="og:description" content="404                        L2Dwidget.init({&quot;pluginRootPath&quot;:&quot;live2dw&#x2F;&quot;,&quot;pluginJsPath&quot;:&quot;lib&#x2F;&quot;,&quot;pluginModelPath&quot;:&quot;assets&#x2F;&quot;,&quot;tagMode&quot;:false,&quot;debug&quot;:false,&quot;model&quot;:{&quot;jsonPath&quot;:&quot;&#x2F;liv">
+<meta property="og:description" content="ODPS中正则表达式的使用引言：在使用ODPS进行数据清洗时，遇到了日期格式错乱的问题。当内置的日期函数和之前的UDF无法解决时，尝试使用正则匹配去解决这个问题。（以下内容仅供参考）">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-04-05T11:36:51.000Z">
-<meta property="article:modified_time" content="2020-04-05T11:38:28.777Z">
+<meta property="article:published_time" content="2020-05-31T06:56:53.000Z">
+<meta property="article:modified_time" content="2020-05-31T07:01:23.527Z">
 <meta property="article:author" content="陈诚同学">
+<meta property="article:tag" content="odps">
+<meta property="article:tag" content="maxcompute">
+<meta property="article:tag" content="正则表达式">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="陈诚的博客" type="application/atom+xml">
@@ -167,36 +170,80 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="page-" class="article article-type-page " itemscope itemprop="blogPost">
+            <article id="post-ODPS中的正则表达式使用案例1" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      404
+      ODPS中的正则表达式使用案例1
     </h1>
   
 
         
-        <a href="/404/index.html" class="archive-article-date">
-  	<time datetime="2020-04-05T11:36:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-04-05</time>
+        <a href="/2020/05/31/ODPS%E4%B8%AD%E7%9A%84%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B1/" class="archive-article-date">
+  	<time datetime="2020-05-31T06:56:53.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-05-31</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>404</title>
-    <meta name="generator" content="Hexo 4.2.0"></head>
-    <body>
-        <script type="text/javascript" src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8"></script>
-    <script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"width":180,"height":360,"position":"left","hOffset":40,"vOffset":-5},"mobile":{"show":false},"log":false});</script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"width":180,"height":360,"position":"left","hOffset":40,"vOffset":-5},"mobile":{"show":false},"log":false});</script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"width":180,"height":360,"position":"left","hOffset":40,"vOffset":-5},"mobile":{"show":false},"log":false});</script></body>
-</html>
+        <h2 id="ODPS中正则表达式的使用"><a href="#ODPS中正则表达式的使用" class="headerlink" title="ODPS中正则表达式的使用"></a>ODPS中正则表达式的使用</h2><p>引言：在使用ODPS进行数据清洗时，遇到了日期格式错乱的问题。当内置的日期函数和之前的UDF无法解决时，尝试使用正则匹配去解决这个问题。（以下内容仅供参考）</p>
+<a id="more"></a>
+
+<ul>
+<li><p><strong>ODPS在(本例中)可能用到的内置函数</strong></p>
+<ul>
+<li><strong><em>regexp_substr()</em></strong>  ：正则匹配</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--命令格式</span></span><br><span class="line">regexp_substr(source,pattern,[start_position],[nth_occurrence])</span><br><span class="line"><span class="comment">--返回值</span></span><br><span class="line">source中匹配pattern指定模式的子串，任一输入参数为NULL返回NULL</span><br><span class="line"><span class="comment">--参数说明</span></span><br><span class="line">source <span class="comment">-- string类型，搜索的字符串（ODS数据字段）</span></span><br><span class="line">pattern <span class="comment">-- string类型，要匹配的模型（正则），为空串时抛异常</span></span><br><span class="line">start_position <span class="comment">-- 整型常量，必须大于0，表示从第n个字符开始匹配</span></span><br><span class="line">nth_occurrence <span class="comment">-- 整型常量，必须大于0，表示返回第几次匹配成功的字符串</span></span><br><span class="line"><span class="comment">--例子</span></span><br><span class="line"><span class="keyword">SELECT</span> REGEXP_SUBSTR(<span class="string">'ABC4_321'</span>,<span class="string">"[0-9]+"</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line">&gt; <span class="number">4</span></span><br><span class="line"><span class="keyword">SELECT</span> REGEXP_SUBSTR(<span class="string">'ABC4_321'</span>,<span class="string">"[0-9]+"</span>,<span class="number">1</span>,<span class="number">2</span>)</span><br><span class="line">&gt; <span class="number">321</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><em>regexp_extract()</em></strong>：正则匹配解析</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--命令格式</span></span><br><span class="line">regexp_extract(source,pattern,index)</span><br><span class="line"><span class="comment">--返回值</span></span><br><span class="line">source中匹配pattern指定模式的子串</span><br><span class="line"><span class="comment">--参数说明</span></span><br><span class="line">source <span class="comment">-- string类型，搜索的字符串（ODS数据字段）</span></span><br><span class="line">pattern <span class="comment">-- string类型，要匹配的模型（正则）</span></span><br><span class="line">index <span class="comment">--整型，0表示显示所有匹配结果，1表示显示第一个括号的匹配结果，2表示显示第二个括号的匹配结果</span></span><br><span class="line"><span class="comment">--例子</span></span><br><span class="line">regexp_extract('http://a.m.taobao.com/i41915173660.htm','i([0-9]+)',0)</span><br><span class="line">&gt; i41915173660</span><br><span class="line">regexp_extract('http://a.m.taobao.com/i41915173660.htm','i([0-9]+)',1)</span><br><span class="line">&gt; 41915173660</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><em>regexp_replace()</em></strong> ：正则替换</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--命令格式</span></span><br><span class="line">regexp_replace(source,pattern,replace_string,occurrence)</span><br><span class="line"><span class="comment">--返回值</span></span><br><span class="line">将source字符串中匹配pattern的子串替换成指定字符串后返回，当输入source，pattern，occurrence参数为NULL，若replace_string为NULL且pattern有匹配，返回NULL，replace_string为NULL但pattern不匹配，返回原字符串。</span><br><span class="line"><span class="comment">--参数说明</span></span><br><span class="line">source <span class="comment">--string类型，搜索的字符串（ODS数据字段）</span></span><br><span class="line">pattern <span class="comment">-- string类型，要匹配的模型（正则），为空串时抛异常</span></span><br><span class="line">regexp_replace <span class="comment">--string类型，将匹配的pattern替换成的字符串</span></span><br><span class="line">occurrence :<span class="comment">--bigint类型常量，必须大于等于0，表示将第n次匹配替换成replace_string,为0时表示替换所有符合规则的字符串，其他类型或小于0抛异常</span></span><br><span class="line"><span class="comment">--例子</span></span><br><span class="line">regexp_replace("abcd","[a]+","A",0)</span><br><span class="line">&gt; Abcd</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><em>split_part()</em></strong>：切割函数</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--例子</span></span><br><span class="line">split_part('abcd:1234',':',1)</span><br><span class="line">&gt; abcd</span><br><span class="line">split_part('abcd:1234',':',2)</span><br><span class="line">&gt; 1234</span><br></pre></td></tr></table></figure>
+
+<hr>
+</li>
+<li><p><strong>问题描述</strong></p>
+<p>清洗日期数据时，一些标准的日期格式如2020-01-01 00:00:00 可以通过内置函数和UDF进行处理，但有时候ODS过来的数据往往并不是标准的日期格式，解决方法有很多，我们可以通过编写UDF进行清洗，也可以直接使用ODPS的内置函数尝试解决。在这里尝试使用<em>正则表达式的方式</em>解决这个问题。</p>
+</li>
+<li><p><strong>需要清洗的数据格式</strong></p>
+<blockquote>
+<p>2020/01/01 00:00:00<br>2020/1/01 00:00:00<br>2020/01/1 00:00:00<br>2020/1/1 00:00:00<br>2020/01/01:00:00:00<br>20200101<br>2020-01-01 00:00:00<br>2020-01-0100:00:00<br>2020-01-0100:00:00000<br>2020-01-01 00:00:00</p>
+<p>（等等）…</p>
+</blockquote>
+</li>
+<li><p><strong>实现思路</strong></p>
+<ul>
+<li><p>使用原有UDF的方式实现（该UDF不能覆盖全部数据格式，仅支持10种）</p>
+<p>使用regexp_substr()或regexp_extract()匹配该UDF支持的10种，再使用UDF处理，其余返回原数据。</p>
+</li>
+<li><p>不使用UDF</p>
+<p>先使用regexp_substr()或regexp_extract匹配常见的几种格式数据，再通过split_part()对数据进行切割，并使用regexp_replace()进行替换操作，最后使用concat()组合起来。其余的返回原数据。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>代码</strong></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--匹配该例子常见10种日期时间格式正则表达式</span></span><br><span class="line">[0-9]&#123;4&#125;\/[0-9]&#123;1,2&#125;\/[0-9]&#123;1,2&#125;[: ]?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;|[0-9]&#123;8&#125;|[0-9]&#123;4&#125;-?[0-9]&#123;1,2&#125;-?[0-9]&#123;1,2&#125; ?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;:?[0-9]+</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--清洗语句</span></span><br><span class="line"><span class="comment">--清洗该字段</span></span><br><span class="line">gdns_ods.dateformat_udf(</span><br><span class="line">    case when </span><br><span class="line">    regexp_substr(field,"[0-9]&#123;4&#125;\/[0-9]&#123;1,2&#125;\/[0-9]&#123;1,2&#125;[: ]?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;|[0-9]&#123;8&#125;|[0-9]&#123;4&#125;-?[0-9]&#123;1,2&#125;-?[0-9]&#123;1,2&#125; ?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;:?[0-9]+",0,0)='' </span><br><span class="line">    then null else</span><br><span class="line">    regexp_substr(field,"[0-9]&#123;4&#125;\/[0-9]&#123;1,2&#125;\/[0-9]&#123;1,2&#125;[: ]?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;|[0-9]&#123;8&#125;|[0-9]&#123;4&#125;-?[0-9]&#123;1,2&#125;-?[0-9]&#123;1,2&#125; ?[0-9]&#123;1,2&#125;:?[0-9]&#123;1,2&#125;:?[0-9]+",0,0) end )</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+
       
 
       
@@ -235,7 +282,37 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">odps</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">maxcompute</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">正则表达式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/技术//" class="article-tag-list-link color3">技术</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
 
       
 
@@ -285,7 +362,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/404/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/2020/05/31/ODPS%E4%B8%AD%E7%9A%84%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B1/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -297,6 +374,16 @@
 </article>
 
   
+<nav id="article-nav">
+  
+  
+    <a href="/2020/04/24/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%9F%BA%E7%A1%80%E6%89%8B%E5%86%8C/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">正则表达式基础手册</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
 
 <aside class="wrap-side-operation">
     <div class="mod-side-operation">
@@ -318,7 +405,7 @@
                 </span>
                 <span class="tooltip-content">
                     <div class="toc-article">
-                    目录，不存在的…
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#ODPS中正则表达式的使用"><span class="toc-number">1.</span> <span class="toc-text">ODPS中正则表达式的使用</span></a></li></ol>
                     </div>
                 </span>
             </div>
@@ -365,7 +452,7 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,
